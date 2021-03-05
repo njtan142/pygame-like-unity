@@ -17,10 +17,11 @@ class GameObject:
         if component == "text_renderer":
             self.renderer.text(params)
 
-    def render(self, screen, offsetx=0, offsety=0):
+    def render(self, screen, x, y):
+        # print(x, y)
         screen.blit(self.renderer.to_render.surface,
-                    (self.transform.position.x + offsetx - self.renderer.to_render.surface.get_width() / 2,
-                     self.transform.position.y + offsety - self.renderer.to_render.surface.get_height() / 2)
+                    (x - self.renderer.to_render.surface.get_width() / 2,
+                     y - self.renderer.to_render.surface.get_height() / 2)
                     )
     def add_child(self, child):
         self.children[child.name] = child
@@ -62,3 +63,5 @@ class TextRenderer:
 
     def __init__(self, params):
         self.surface = params[0].render(params[1], params[2], params[3])
+
+
