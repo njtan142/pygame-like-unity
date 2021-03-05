@@ -13,8 +13,7 @@ test.add_component("text_renderer",
 
 running = True
 while running:
-    # test.transform.position.x += 0.0001
-    print(container.children)
+
 
     test.render(screen, screen.get_width()/2, screen.get_height()/2)
     for event in pygame.event.get():
