@@ -1,9 +1,10 @@
 import pygame
 from PygameUnity.game_object import GameObject
 from camera import Camera
+from datetime import datetime as dt
 
 pygame.init()
-screen = pygame.display.set_mode((200, 200), pygame.FULLSCREEN | pygame.SCALED)
+screen = pygame.display.set_mode((400, 400), pygame.FULLSCREEN | pygame.SCALED)
 container = GameObject("container")
 test = GameObject("test")
 test2 = GameObject("test2", 10, 90, 0, -1)
@@ -29,6 +30,10 @@ test2.add_component("collider",
                      test2.renderer.to_render.surface.get_width(),
                      test2.renderer.to_render.surface.get_height())
                     )
+test2.add_component("physics",
+                    (1, 0, 0.005, True, False)
+                    )
+test2.physics.velocity.x = 10
 
 running = True
 
@@ -41,12 +46,21 @@ def pygame_events():
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 running = False
+            if event.key == pygame.K_SPACE:
+                test2.physics.velocity.y = 300
 
         if event.type == pygame.MOUSEBUTTONUP:
             print(pygame.mouse.get_pos()[0] - screen.get_width() / 2,
                   -pygame.mouse.get_pos()[1] + screen.get_height() / 2)
 
 
+current_time_dt = dt.now()
+current_time_ts = dt.timestamp(current_time_dt)
+last_time_dt = dt.now()
+last_time_ts = dt.timestamp(last_time_dt)
+time_count = 0
+time_delta = 0.016  # 1/60 of a second
+time_scale = 1
 while running:
     screen.fill((0, 20, 0))
 
@@ -56,9 +70,16 @@ while running:
     # test.transform.position.y += 0.1
     # camera.game_object.transform.position.y += 0.1
     # print(test.transform.position.y, camera.game_object.transform.position.y)
-    test2.move(horizontal * 0.1, 0, container.children)
-    test2.move(0, -vertical * 0.1, container.children)
+    test2.move(horizontal * 100, 0, time_delta, container.children)
+    test2.move(0, -vertical * 100, time_delta, container.children)
     pygame_events()
 
     camera.render(screen)
     pygame.display.flip()
+
+    last_time_dt = dt.now()
+    last_time_ts = dt.timestamp(last_time_dt)
+    time_delta = last_time_ts - current_time_ts
+    time_count += time_delta
+    current_time_dt = dt.now()
+    current_time_ts = dt.timestamp(current_time_dt)
