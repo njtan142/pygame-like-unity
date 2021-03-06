@@ -1,35 +1,64 @@
 import pygame
-from game_object import GameObject
+from PygameUnity.game_object import GameObject
 from camera import Camera
 
 pygame.init()
 screen = pygame.display.set_mode((200, 200), pygame.FULLSCREEN | pygame.SCALED)
 container = GameObject("container")
 test = GameObject("test")
+test2 = GameObject("test2", 10, 90, 0, -1)
 container.add_child(test)
+container.add_child(test2)
 camera = Camera(screen.get_width(), screen.get_height(), container.children)
 font = pygame.font.SysFont(None, 24)
-test.add_component("text_renderer",
-                   (font, "I love you", False, (255, 255, 255))
+test.add_component("image_renderer",
+                   "assets/block.png"
                    )
+test.add_component("collider",
+                   (test.transform.position.x - test.renderer.to_render.surface.get_width() / 2,
+                    test.transform.position.y + test.renderer.to_render.surface.get_height() / 2,
+                    test.renderer.to_render.surface.get_width(),
+                    test.renderer.to_render.surface.get_height())
+                   )
+test2.add_component("image_renderer",
+                    "assets/block.png"
+                    )
+test2.add_component("collider",
+                    (test2.transform.position.x - test2.renderer.to_render.surface.get_width() / 2,
+                     test2.transform.position.y + test2.renderer.to_render.surface.get_height() / 2,
+                     test2.renderer.to_render.surface.get_width(),
+                     test2.renderer.to_render.surface.get_height())
+                    )
 
 running = True
-while running:
-    screen.fill((0, 20, 0))
-    camera.render(screen)
-    # test.transform.position.y += 0.1
-    # camera.game_object.transform.position.y += 0.1
-    # print(test.transform.position.y, camera.game_object.transform.position.y)
+
+
+def pygame_events():
+    global running
     for event in pygame.event.get():
         if event.type is pygame.QUIT:
             running = False
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 running = False
-            if event.key == pygame.K_w:
-                camera.game_object.transform.position.y += 20
-            if event.key == pygame.K_s:
-                camera.game_object.transform.position.y -= 20
+
+        if event.type == pygame.MOUSEBUTTONUP:
+            print(pygame.mouse.get_pos()[0] - screen.get_width() / 2,
+                  -pygame.mouse.get_pos()[1] + screen.get_height() / 2)
 
 
+while running:
+    screen.fill((0, 20, 0))
+
+    key_state = pygame.key.get_pressed()
+    horizontal = key_state[pygame.K_d] - key_state[pygame.K_a]
+    vertical = key_state[pygame.K_s] - key_state[pygame.K_w]
+    # test.transform.position.y += 0.1
+    # camera.game_object.transform.position.y += 0.1
+    # print(test.transform.position.y, camera.game_object.transform.position.y)
+    test2.move(horizontal * 0.1, 0, container.children)
+    test2.move(0, -vertical * 0.1, container.children)
+    pygame_events()
+
+    camera.render(screen)
     pygame.display.flip()

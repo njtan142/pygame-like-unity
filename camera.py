@@ -1,21 +1,41 @@
-from game_object import GameObject
+from PygameUnity.game_object import GameObject
 
 
 class Camera:
 
     def __init__(self, width, height, game_objects):
         self.game_object = GameObject("camera")
-        self.to_render = game_objects
+        self.objects = game_objects
         self.width = width
         self.height = height
+        self.z_positions = []
+        self.layers = []
+        self.sort()
 
-    def render(self, screen, offset=0.5):
-        for obj in self.to_render:
-            mx = self.game_object.transform.position.x
-            my = self.game_object.transform.position.y
-            x = self.to_render[obj].transform.position.x
-            y = self.to_render[obj].transform.position.y
+    def render(self, screen):
+        for position in self.z_positions:
+            for layer in self.layers:
+                for obj in self.objects:
+                    if self.objects[obj].transform.position.z != position:
+                        continue
+                    if self.objects[obj].renderer.layer != layer:
+                        continue
+                    mx = self.game_object.transform.position.x
+                    my = self.game_object.transform.position.y
+                    x = self.objects[obj].transform.position.x
+                    y = self.objects[obj].transform.position.y
 
-            offsetx = mx - x
-            offsety = my - y
-            self.to_render[obj].render(screen, self.width / 2 + offsetx, self.height / 2 + offsety)
+                    offset_x = x - mx
+                    offset_y = my - y
+                    self.objects[obj].render(screen, self.width / 2 + offset_x, self.height / 2 + offset_y)
+
+    def sort(self):
+        for obj in self.objects:
+            if self.objects[obj].transform.position.z not in self.z_positions:
+                self.z_positions.append(self.objects[obj].transform.position.z)
+            if self.objects[obj].renderer.layer not in self.layers:
+                self.layers.append(self.objects[obj].renderer.layer)
+
+        self.z_positions.sort()
+        self.layers.sort()
+        print(self.layers)
