@@ -39,13 +39,16 @@ class Camera:
 
         self.z_positions.sort()
         self.layers.sort()
-        print(self.layers)
 
     def movement(self, time_delta):
         x = self.game_object.transform.position.x - self.target.transform.position.x
         y = self.game_object.transform.position.y - self.target.transform.position.y
-        x = (x/abs(x)) * abs(x) ** 1.3
-        y = (y/abs(y)) * abs(y) ** 1.3
+
+        if x != 0:
+            x = (x/abs(x)) * abs(x) ** 1.1
+        if y != 0:
+            y = (y/abs(y)) * abs(y) ** 1.1
+
         self.game_object.transform.position.x -= x * time_delta
         self.game_object.transform.position.y -= y * time_delta
 

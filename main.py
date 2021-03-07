@@ -91,7 +91,7 @@ while running:
     test3.move(0, 0, time_delta, container.children)
     test.move(0, 0, time_delta, container.children)
     pygame_events()
-    print(test.physics.velocity.y)
+    print(test3.physics.velocity.y)
     camera.movement(time_delta)
     camera.render(screen)
     pygame.display.flip()

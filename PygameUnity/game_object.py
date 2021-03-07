@@ -86,6 +86,14 @@ class GameObject:
                             if not collisions[obj].physics.rigidbody.is_kenimatic:
                                 collisions[obj].physics.velocity.y += self.physics.velocity.y
                         self.physics.velocity.y = round(-self.physics.velocity.y * self.physics.material.bounciness)
+                        difference = ((self.physics.material.friction + collisions[obj].physics.material.friction) * time_delta) / abs((self.physics.material.friction + collisions[obj].physics.material.friction) * time_delta)
+                        difference *= max((self.physics.material.friction + collisions[obj].physics.material.friction) * time_delta, 0)
+                        difference = abs(self.physics.velocity.x - difference)
+                        if self.physics.velocity.x > 0:
+                            self.physics.velocity.x -= difference * time_delta
+                        elif self.physics.velocity.x < 0:
+                            self.physics.velocity.x += difference * time_delta
+
                 self.transform.position.y = self.collider.top - self.collider.height / 2
 
     def render(self, screen, x, y):
@@ -145,7 +153,6 @@ class Collider:
         self.height = params[3]
         self.right = params[0] + params[2]
         self.bottom = params[1] - params[3]
-        print(self.left, self.top, self.right, self.bottom)
 
     def update(self):
         self.right = self.left + self.width
@@ -224,6 +231,6 @@ class Rigidbody:
 
 class Material:
 
-    def __init__(self, bounciness=0.3, friction=0.3):
+    def __init__(self, bounciness=0.3, friction=50):
         self.bounciness = bounciness
         self.friction = friction
