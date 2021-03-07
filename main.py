@@ -4,12 +4,14 @@ from camera import Camera
 from datetime import datetime as dt
 
 pygame.init()
-screen = pygame.display.set_mode((400, 400), pygame.FULLSCREEN | pygame.SCALED)
+screen = pygame.display.set_mode((800, 800), pygame.FULLSCREEN | pygame.SCALED)
 container = GameObject("container")
 test = GameObject("test")
-test2 = GameObject("test2", 10, 90, 0, -1)
+test2 = GameObject("test2", 10, 40, 0, -1)
+test3 = GameObject('test3', 10, 100, 0, -1)
 container.add_child(test)
 container.add_child(test2)
+container.add_child(test3)
 camera = Camera(screen.get_width(), screen.get_height(), container.children)
 font = pygame.font.SysFont(None, 24)
 test.add_component("image_renderer",
@@ -18,7 +20,7 @@ test.add_component("image_renderer",
 test.add_component("collider",
                    (test.transform.position.x - test.renderer.to_render.surface.get_width() / 2,
                     test.transform.position.y + test.renderer.to_render.surface.get_height() / 2,
-                    test.renderer.to_render.surface.get_width(),
+                    test.renderer.to_render.surface.get_width() * 10,
                     test.renderer.to_render.surface.get_height())
                    )
 test2.add_component("image_renderer",
@@ -31,9 +33,20 @@ test2.add_component("collider",
                      test2.renderer.to_render.surface.get_height())
                     )
 test2.add_component("physics",
-                    (1, 0, 0.005, True, False)
+                    (50, 0, 0.005, True, False)
                     )
-test2.physics.velocity.x = 10
+test3.add_component("image_renderer",
+                    "assets/block.png"
+                    )
+test3.add_component("collider",
+                    (test3.transform.position.x - test3.renderer.to_render.surface.get_width() / 2,
+                     test3.transform.position.y + test3.renderer.to_render.surface.get_height() / 2,
+                     test3.renderer.to_render.surface.get_width(),
+                     test3.renderer.to_render.surface.get_height())
+                    )
+test3.add_component("physics",
+                    (0, 0, 0.005, True, False)
+                    )
 
 running = True
 
@@ -70,8 +83,8 @@ while running:
     # test.transform.position.y += 0.1
     # camera.game_object.transform.position.y += 0.1
     # print(test.transform.position.y, camera.game_object.transform.position.y)
-    test2.move(horizontal * 100, 0, time_delta, container.children)
-    test2.move(0, -vertical * 100, time_delta, container.children)
+    test2.move(horizontal * 100, -vertical * 100, time_delta, container.children)
+    test3.move(0, 0, time_delta, container.children)
     pygame_events()
 
     camera.render(screen)

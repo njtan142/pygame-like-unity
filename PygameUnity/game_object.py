@@ -8,6 +8,7 @@ class GameObject:
     def __init__(self, name, x=0, y=0, z=0, layer=0):
         self.name = name
         self.children = {}
+        print(z)
         self.transform = Transform(x, y, z)
         self.renderer = Renderer(layer)
         self.collider = None
@@ -25,7 +26,7 @@ class GameObject:
 
     def move(self, x, y, time_delta, collisions):
         if self.physics is not None:
-            vx, vy = self.physics.movement()
+            vx, vy = self.physics.movement(time_delta)
         else:
             vx = 0
             vy = 0
@@ -49,6 +50,7 @@ class GameObject:
         self.collider.top += y
         self.collider.update()
         for obj in collisions:
+            # print(self.transform.position.z, collisions[obj].transform.position.z)
             if self.transform.position.z != collisions[obj].transform.position.z:
                 continue
             if self.collider.colliderect(collisions[obj].collider):
@@ -77,8 +79,8 @@ class GameObject:
     def render(self, screen, x, y):
         # print(x, y)
         screen.blit(self.renderer.to_render.surface,
-                    (x - self.renderer.to_render.surface.get_width() / 2,
-                     y - self.renderer.to_render.surface.get_height() / 2)
+                    (round(x - self.renderer.to_render.surface.get_width() / 2),
+                     round(y - self.renderer.to_render.surface.get_height() / 2))
                     )
 
     def add_child(self, child):
@@ -152,6 +154,26 @@ class Collider:
             vertical = self.top > point[1] > self.bottom
             if horizontal and vertical:
                 return True
+            if self.right > collision.right > self.left:
+                if self.top == collision.top:
+                    return True
+            if self.left < collision.left < self.right:
+                if self.top == collision.top:
+                    return True
+            if self.left == collision.left:
+                if self.top > collision.top > self.bottom:
+                    return True
+                if self.bottom < collision.bottom < self.top:
+                    return True
+        collision_points = [(self.left, self.top),
+                            (self.left, self.bottom),
+                            (self.right, self.top),
+                            (self.right, self.bottom)]
+        for point in collision_points:
+            horizontal = collision.left < point[0] < collision.right
+            vertical = collision.top > point[1] > collision.bottom
+            if horizontal and vertical:
+                return True
         return False
 
 
@@ -161,15 +183,14 @@ class Physics:
         self.velocity = Velocity()
         self.rigidbody = Rigidbody(params[0], params[1], params[2], params[3], params[4])
 
-    def movement(self):
+    def movement(self, time_delta):
         x = self.velocity.x
         y = self.velocity.y
-        self.gravity()
+        self.gravity(time_delta)
         return x, y
 
-    def gravity(self):
-        self.velocity.y -= 0.5
-        pass
+    def gravity(self, time_delta):
+        self.velocity.y -= 9.81 * self.rigidbody.mass * time_delta
 
     def update_physics(self):
         pass
