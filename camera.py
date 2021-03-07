@@ -3,14 +3,15 @@ from PygameUnity.game_object import GameObject
 
 class Camera:
 
-    def __init__(self, width, height, game_objects):
-        self.game_object = GameObject("camera")
+    def __init__(self, width, height, game_objects, target=None):
+        self.game_object = GameObject("camera", -100, 100)
         self.objects = game_objects
         self.width = width
         self.height = height
         self.z_positions = []
         self.layers = []
         self.sort()
+        self.target = target
 
     def render(self, screen):
         for position in self.z_positions:
@@ -39,3 +40,12 @@ class Camera:
         self.z_positions.sort()
         self.layers.sort()
         print(self.layers)
+
+    def movement(self, time_delta):
+        x = self.game_object.transform.position.x - self.target.transform.position.x
+        y = self.game_object.transform.position.y - self.target.transform.position.y
+        x = (x/abs(x)) * abs(x) ** 1.3
+        y = (y/abs(y)) * abs(y) ** 1.3
+        self.game_object.transform.position.x -= x * time_delta
+        self.game_object.transform.position.y -= y * time_delta
+

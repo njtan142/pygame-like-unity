@@ -6,7 +6,7 @@ from datetime import datetime as dt
 pygame.init()
 screen = pygame.display.set_mode((800, 800), pygame.FULLSCREEN | pygame.SCALED)
 container = GameObject("container")
-test = GameObject("test")
+test = GameObject("test", -400, 0, 0, -1)
 test2 = GameObject("test2", 10, 40, 0, -1)
 test3 = GameObject('test3', 10, 100, 0, -1)
 container.add_child(test)
@@ -20,7 +20,7 @@ test.add_component("image_renderer",
 test.add_component("collider",
                    (test.transform.position.x - test.renderer.to_render.surface.get_width() / 2,
                     test.transform.position.y + test.renderer.to_render.surface.get_height() / 2,
-                    test.renderer.to_render.surface.get_width() * 10,
+                    test.renderer.to_render.surface.get_width() * 100,
                     test.renderer.to_render.surface.get_height())
                    )
 test2.add_component("image_renderer",
@@ -45,9 +45,12 @@ test3.add_component("collider",
                      test3.renderer.to_render.surface.get_height())
                     )
 test3.add_component("physics",
-                    (0, 0, 0.005, True, False)
+                    (20, 0, 0.005, True, False)
                     )
+test.add_component("physics",
+                   (20, 0, 0.005, False, True))
 
+camera.target = test2
 running = True
 
 
@@ -83,10 +86,13 @@ while running:
     # test.transform.position.y += 0.1
     # camera.game_object.transform.position.y += 0.1
     # print(test.transform.position.y, camera.game_object.transform.position.y)
-    test2.move(horizontal * 100, -vertical * 100, time_delta, container.children)
+    test2.move(0, 0, time_delta, container.children)
+    test2.physics.velocity.x += horizontal * time_delta * 100
     test3.move(0, 0, time_delta, container.children)
+    test.move(0, 0, time_delta, container.children)
     pygame_events()
-
+    print(test.physics.velocity.y)
+    camera.movement(time_delta)
     camera.render(screen)
     pygame.display.flip()
 

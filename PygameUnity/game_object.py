@@ -8,7 +8,6 @@ class GameObject:
     def __init__(self, name, x=0, y=0, z=0, layer=0):
         self.name = name
         self.children = {}
-        print(z)
         self.transform = Transform(x, y, z)
         self.renderer = Renderer(layer)
         self.collider = None
@@ -24,23 +23,19 @@ class GameObject:
         if component == "physics":
             self.physics = Physics(params)
 
-    def move(self, x, y, time_delta, collisions):
+    def move(self, x, y, time_delta=1, collisions=None):
         if self.physics is not None:
             vx, vy = self.physics.movement(time_delta)
-        else:
-            vx = 0
-            vy = 0
-        x += vx
-        y += vy
+            x += vx
+            y += vy
+
         x *= time_delta
         y *= time_delta
-        if self.physics is not None:
-            self.physics.velocity.x -= vx * time_delta
-            self.physics.velocity.y -= vy * time_delta
-        self.msa(x, 0, collisions)
-        self.msa(0, y, collisions)
 
-    def msa(self, x, y, collisions):
+        self.msa(x, 0, time_delta, collisions)
+        self.msa(0, y, time_delta, collisions)
+
+    def msa(self, x, y, time_delta, collisions):
         self.transform.position.x += x
         self.transform.position.y += y
 
@@ -49,17 +44,26 @@ class GameObject:
         self.collider.left += x
         self.collider.top += y
         self.collider.update()
+        if collisions is None:
+            return
         for obj in collisions:
-            # print(self.transform.position.z, collisions[obj].transform.position.z)
             if self.transform.position.z != collisions[obj].transform.position.z:
                 continue
             if self.collider.colliderect(collisions[obj].collider):
                 if x > 0:
                     self.collider.left = collisions[obj].collider.left - self.collider.width
                     self.collider.update()
+                    if self.physics is not None:
+                        if collisions[obj].physics is not None:
+                            collisions[obj].physics.velocity.x += self.physics.velocity.x
+                            self.physics.velocity.x = 0
                 elif x < 0:
                     self.collider.left = collisions[obj].collider.right
                     self.collider.update()
+                    if self.physics is not None:
+                        if collisions[obj].physics is not None:
+                            collisions[obj].physics.velocity.x += self.physics.velocity.x
+                            self.physics.velocity.x = 0
                 self.transform.position.x = self.collider.left + self.collider.width / 2
 
         for obj in collisions:
@@ -69,15 +73,22 @@ class GameObject:
                 if y > 0:
                     self.collider.top = collisions[obj].collider.bottom
                     self.collider.update()
+                    if self.physics is not None:
+                        if collisions[obj].physics is not None:
+                            if not collisions[obj].physics.rigidbody.is_kenimatic:
+                                collisions[obj].physics.velocity.y += self.physics.velocity.y
+                            self.physics.velocity.y = 0
                 elif y < 0:
                     self.collider.top = collisions[obj].collider.top + self.collider.height
                     self.collider.update()
                     if self.physics is not None:
-                        self.physics.velocity.y = 0
+                        if collisions[obj].physics is not None:
+                            if not collisions[obj].physics.rigidbody.is_kenimatic:
+                                collisions[obj].physics.velocity.y += self.physics.velocity.y
+                        self.physics.velocity.y = round(-self.physics.velocity.y * self.physics.material.bounciness)
                 self.transform.position.y = self.collider.top - self.collider.height / 2
 
     def render(self, screen, x, y):
-        # print(x, y)
         screen.blit(self.renderer.to_render.surface,
                     (round(x - self.renderer.to_render.surface.get_width() / 2),
                      round(y - self.renderer.to_render.surface.get_height() / 2))
@@ -154,13 +165,12 @@ class Collider:
             vertical = self.top > point[1] > self.bottom
             if horizontal and vertical:
                 return True
-            if self.right > collision.right > self.left:
-                if self.top == collision.top:
+            if self.top == collision.top and self.bottom == collision.bottom:
+                if self.right > collision.right > self.left:
                     return True
-            if self.left < collision.left < self.right:
-                if self.top == collision.top:
+                if self.left < collision.left < self.right:
                     return True
-            if self.left == collision.left:
+            if self.left == collision.left and self.right == collision.right:
                 if self.top > collision.top > self.bottom:
                     return True
                 if self.bottom < collision.bottom < self.top:
@@ -182,18 +192,17 @@ class Physics:
     def __init__(self, params):
         self.velocity = Velocity()
         self.rigidbody = Rigidbody(params[0], params[1], params[2], params[3], params[4])
+        self.material = Material()
 
     def movement(self, time_delta):
         x = self.velocity.x
         y = self.velocity.y
-        self.gravity(time_delta)
+        if self.rigidbody.is_gravity:
+            self.gravity(time_delta)
         return x, y
 
     def gravity(self, time_delta):
         self.velocity.y -= 9.81 * self.rigidbody.mass * time_delta
-
-    def update_physics(self):
-        pass
 
 
 class Velocity:
@@ -205,9 +214,16 @@ class Velocity:
 
 class Rigidbody:
 
-    def __init__(self, mass=1, drag=0, angular_drag=0.05, use_gravity=True, is_kinematic=False):
+    def __init__(self, mass, drag, angular_drag, use_gravity, is_kinematic):
         self.mass = mass
         self.drag = drag
         self.angular_drag = angular_drag
         self.is_gravity = use_gravity
         self.is_kenimatic = is_kinematic
+
+
+class Material:
+
+    def __init__(self, bounciness=0.3, friction=0.3):
+        self.bounciness = bounciness
+        self.friction = friction
