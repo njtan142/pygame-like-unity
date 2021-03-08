@@ -1,6 +1,5 @@
 from PygameUnity.game_object import GameObject
 
-
 class Camera:
 
     def __init__(self, width, height, game_objects, target=None):

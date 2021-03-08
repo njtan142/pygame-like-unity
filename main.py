@@ -2,6 +2,7 @@ import pygame
 from PygameUnity.game_object import GameObject
 from camera import Camera
 from datetime import datetime as dt
+from Collision import Collision
 
 pygame.init()
 screen = pygame.display.set_mode((800, 800), pygame.FULLSCREEN | pygame.SCALED)
@@ -50,6 +51,19 @@ test3.add_component("physics",
 test.add_component("physics",
                    (20, 0, 0.005, False, True))
 
+polygon = Collision(
+    [(-16, 16),
+     (16, 16),
+     (16, -16),
+     (-16, -16)], pygame
+)
+nope = Collision(
+    [(-16, 16),
+     (16, 16),
+     (16, -16),
+     (-16, -16)], pygame
+)
+print(polygon.origin)
 camera.target = test2
 running = True
 
@@ -64,10 +78,6 @@ def pygame_events():
                 running = False
             if event.key == pygame.K_SPACE:
                 test2.physics.velocity.y = 300
-
-        if event.type == pygame.MOUSEBUTTONUP:
-            print(pygame.mouse.get_pos()[0] - screen.get_width() / 2,
-                  -pygame.mouse.get_pos()[1] + screen.get_height() / 2)
 
 
 current_time_dt = dt.now()
@@ -87,13 +97,14 @@ while running:
     # camera.game_object.transform.position.y += 0.1
     # print(test.transform.position.y, camera.game_object.transform.position.y)
     test2.move(0, 0, time_delta, container.children)
-    test2.physics.velocity.x += horizontal * time_delta * 100
     test3.move(0, 0, time_delta, container.children)
     test.move(0, 0, time_delta, container.children)
+    polygon.move(horizontal * 100 * time_delta, -vertical * 100 * time_delta)
     pygame_events()
-    print(test3.physics.velocity.y)
     camera.movement(time_delta)
     camera.render(screen)
+    polygon.draw_lines(screen)
+    nope.draw_lines(screen)
     pygame.display.flip()
 
     last_time_dt = dt.now()
@@ -102,3 +113,7 @@ while running:
     time_count += time_delta
     current_time_dt = dt.now()
     current_time_ts = dt.timestamp(current_time_dt)
+
+    if time_count >= 1:
+        polygon.calculate_origin()
+        time_count -= 1
