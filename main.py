@@ -5,7 +5,7 @@ from datetime import datetime as dt
 from Collision import Collision
 
 pygame.init()
-screen = pygame.display.set_mode((800, 800), pygame.FULLSCREEN | pygame.SCALED)
+screen = pygame.display.set_mode((800, 800))
 container = GameObject("container")
 test = GameObject("test", -400, 0, 0, -1)
 test2 = GameObject("test2", 10, 40, 0, -1)
@@ -34,7 +34,7 @@ test2.add_component("collider",
                      test2.renderer.to_render.surface.get_height())
                     )
 test2.add_component("physics",
-                    (50, 0, 0.005, True, False)
+                    (20, 0, 0.005, True, False)
                     )
 test3.add_component("image_renderer",
                     "assets/block.png"
@@ -52,13 +52,15 @@ test.add_component("physics",
                    (20, 0, 0.005, False, True))
 
 polygon = Collision(
-    [(-16, 16),
-     (16, 16),
+    [
+    (-16, 16),
+     # (16, 16),
      (16, -16),
      (-16, -16)], pygame
 )
 nope = Collision(
-    [(-16, 16),
+    [
+    # (-16, 16),
      (16, 16),
      (16, -16),
      (-16, -16)], pygame
@@ -78,6 +80,9 @@ def pygame_events():
                 running = False
             if event.key == pygame.K_SPACE:
                 test2.physics.velocity.y = 300
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            polygon.multiple_collision([(pygame.mouse.get_pos()[0] - screen.get_width()/2,
+                                     -pygame.mouse.get_pos()[1] + screen.get_height()/2)])
 
 
 current_time_dt = dt.now()
